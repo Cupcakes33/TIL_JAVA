@@ -31,45 +31,41 @@ def get_file_creation_date(file_path):
     return time.strftime('%y/%m/%d', time.localtime(timestamp))
 
 def generate_toc():
-    sections = defaultdict(set)
+    sections = {}
     md_files = find_md_files('src')
 
     for file in md_files:
         section_num, headers, file_name = extract_section_and_headers(file)
         if section_num:
-            for header in headers:
-                # tuple을 set에 추가하여 중복 방지
-                sections[int(section_num)].add((header, file_name))
+            section_num = int(section_num)
+            if section_num not in sections:
+                sections[section_num] = []
 
-    toc = ["# JAVA 학습 기록 📚\n\n"]
+            for header in headers:
+                entry = (header, file_name)
+                if entry not in sections[section_num]:
+                    sections[section_num].append(entry)
+
+    toc = []
+    toc.append("# JAVA 학습 기록 📚\n\n")
     toc.append("자바 기초부터 심화까지의 학습 내용을 정리합니다.\n")
     toc.append("김영한 선생님의 강의를 듣고 코드를 작성하고 내용을 요약합니다.\n\n")
 
     for section_num in sorted(sections.keys()):
         toc.append(f"## Section {section_num}\n")
-        for i, (header, file_name) in enumerate(sorted(sections[section_num], reverse=True), 1):
+        for i, (header, file_name) in enumerate(sections[section_num], 1):
             link_path = f"src/Section{section_num}/{file_name}"
             date = get_file_creation_date(os.path.join('src', f'Section{section_num}', file_name))
             toc.append(f"{i}. [{header}]({link_path}) - {date}\n")
         toc.append("\n")
 
+    toc_content = ''.join(toc)
+
     try:
-        with open('README.md', 'r', encoding='utf-8') as f:
-            old_content = f.read()
-
-        toc_content = ''.join(toc)
-
-        pattern = r'# JAVA 학습 기록 📚[\s\S]*?(?=## |$)'
-        if re.search(pattern, old_content):
-            content = re.sub(pattern, toc_content, old_content)
-        else:
-            content = toc_content + "\n" + old_content
-
-    except FileNotFoundError:
-        content = ''.join(toc)
-
-    with open('README.md', 'w', encoding='utf-8') as f:
-        f.write(content)
+        with open('README.md', 'w', encoding='utf-8') as f:
+            f.write(toc_content)
+    except Exception as e:
+        print(f"Error writing to README.md: {e}")
 
 if __name__ == '__main__':
     generate_toc()
