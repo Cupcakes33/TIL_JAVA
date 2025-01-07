@@ -31,14 +31,15 @@ def get_file_creation_date(file_path):
     return time.strftime('%y/%m/%d', time.localtime(timestamp))
 
 def generate_toc():
-    sections = defaultdict(list)
+    sections = defaultdict(set)
     md_files = find_md_files('src')
 
     for file in md_files:
         section_num, headers, file_name = extract_section_and_headers(file)
         if section_num:
             for header in headers:
-                sections[int(section_num)].append((header, file_name))
+                # tuple을 set에 추가하여 중복 방지
+                sections[int(section_num)].add((header, file_name))
 
     toc = ["# JAVA 학습 기록 📚\n\n"]
     toc.append("자바 기초부터 심화까지의 학습 내용을 정리합니다.\n")
@@ -46,7 +47,7 @@ def generate_toc():
 
     for section_num in sorted(sections.keys()):
         toc.append(f"## Section {section_num}\n")
-        for i, (header, file_name) in enumerate(sorted(set(sections[section_num]), reverse=True), 1):
+        for i, (header, file_name) in enumerate(sorted(sections[section_num], reverse=True), 1):
             link_path = f"src/Section{section_num}/{file_name}"
             date = get_file_creation_date(os.path.join('src', f'Section{section_num}', file_name))
             toc.append(f"{i}. [{header}]({link_path}) - {date}\n")
@@ -54,18 +55,16 @@ def generate_toc():
 
     try:
         with open('README.md', 'r', encoding='utf-8') as f:
-            content = f.read()
+            old_content = f.read()
 
         toc_content = ''.join(toc)
-        if '# JAVA 학습 기록 📚' in content:
-            content = re.sub(
-                r'# JAVA 학습 기록 📚.*?(?=##\s+[^#]|\Z)',
-                toc_content,
-                content,
-                flags=re.DOTALL
-            )
+
+        pattern = r'# JAVA 학습 기록 📚[\s\S]*?(?=## |$)'
+        if re.search(pattern, old_content):
+            content = re.sub(pattern, toc_content, old_content)
         else:
-            content = toc_content + "\n" + content
+            content = toc_content + "\n" + old_content
+
     except FileNotFoundError:
         content = ''.join(toc)
 
