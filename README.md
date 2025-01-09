@@ -5,5 +5,5 @@
 
 ## Section 8
 1. [자바 메모리 구조와 static 2](src/Section8/8-2.md) - 25/01/08
-2. [자바 메모리 구조와 static 1](src/Section8/8-1.md) - 25/01/08
+2. [자바 메모리 구조와 static 1](src/Section8/8-1.md) - 25/01/07
 
