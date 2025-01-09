@@ -27,8 +27,17 @@ def extract_section_and_headers(file_path):
     return section_num, headers, file_name
 
 def get_file_creation_date(file_path):
-    timestamp = os.path.getctime(file_path)
-    return time.strftime('%y/%m/%d', time.localtime(timestamp))
+    try:
+        git_command = f'git log --follow --format=%ad --date=format:"%y/%m/%d" -- {file_path} | tail -1'
+        creation_date = subprocess.check_output(git_command, shell=True, text=True).strip()
+
+        if creation_date:
+            return creation_date
+
+        return time.strftime('%y/%m/%d', time.localtime(os.path.getmtime(file_path)))
+
+    except Exception as e:
+        return time.strftime('%y/%m/%d', time.localtime(os.path.getmtime(file_path)))
 
 def generate_toc():
     sections = {}
