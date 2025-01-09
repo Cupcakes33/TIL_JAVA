@@ -7,7 +7,7 @@ public class MathArrayUtils {
 
     private void validateArray(int[] array) {
         if(array.length == 0 && array == null) {
-            throw new IllegalArgumentException("평균을 계산하기 위해서는 적어도 하나 이상의 숫자가 필요합니다.");
+            throw new IllegalArgumentException("계산하기 위해서는 적어도 하나 이상의 숫자가 필요합니다.");
         }
     }
 

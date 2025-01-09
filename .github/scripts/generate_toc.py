@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import subprocess
 from collections import defaultdict
 
 def find_md_files(src_dir):
@@ -28,16 +29,22 @@ def extract_section_and_headers(file_path):
 
 def get_file_creation_date(file_path):
     try:
-        git_command = f'git log --follow --format=%ad --date=format:"%y/%m/%d" -- {file_path} | tail -1'
-        creation_date = subprocess.check_output(git_command, shell=True, text=True).strip()
+        git_path = file_path.replace('\\', '/')
+        git_command = f'git log --follow --format=%ad --date=format:"%y/%m/%d" -- "{git_path}"'
+        repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'],
+                                            text=True).strip()
 
+        creation_date = subprocess.check_output(git_command,
+                                                shell=True,
+                                                text=True,
+                                                cwd=repo_root).strip()
         if creation_date:
-            return creation_date
-
+            return creation_date.split('\n')[-1]
         return time.strftime('%y/%m/%d', time.localtime(os.path.getmtime(file_path)))
-
     except Exception as e:
+        print(f"Git date retrieval failed for {file_path}: {str(e)}")
         return time.strftime('%y/%m/%d', time.localtime(os.path.getmtime(file_path)))
+
 
 def generate_toc():
     sections = {}
