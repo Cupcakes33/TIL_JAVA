@@ -29,21 +29,48 @@ def extract_section_and_headers(file_path):
 
 def get_file_creation_date(file_path):
     try:
-        git_path = file_path.replace('\\', '/')
-        git_command = f'git log --follow --reverse --format=%ad --date=format:"%y/%m/%d %H:%M" -- "{git_path}"'
-        repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'],
-                                            text=True).strip()
+        abs_path = os.path.abspath(file_path)
+        git_path = abs_path.replace('\\', '/')
 
-        creation_date = subprocess.check_output(git_command,
-                                                shell=True,
-                                                text=True,
-                                                cwd=repo_root).strip()
-        if creation_date:
-            return creation_date.split('\n')[0]
-        return time.strftime('%y/%m/%d %H:%M', time.localtime(os.path.getmtime(file_path)))
+        repo_root = subprocess.check_output(
+            ['git', 'rev-parse', '--show-toplevel'],
+            text=True,
+            stderr=subprocess.PIPE
+        ).strip()
+
+        rel_path = os.path.relpath(git_path, repo_root)
+
+        result = subprocess.check_output(
+            [
+                'git',
+                'log',
+                '--follow',
+                '--reverse',
+                '--format=%ad',
+                '--date=format:%y/%m/%d %H:%M',
+                '--',
+                rel_path
+            ],
+            text=True,
+            cwd=repo_root,
+            stderr=subprocess.PIPE
+        )
+
+        commits = result.strip().split('\n')
+        if commits and commits[0]:
+            return commits[0]
+
+        return time.strftime('%y/%m/%d %H:%M',
+                             time.localtime(os.path.getmtime(file_path)))
+
+    except subprocess.CalledProcessError as e:
+        print(f"Git command failed for {file_path}: {e.stderr}")
+        return time.strftime('%y/%m/%d %H:%M',
+                             time.localtime(os.path.getmtime(file_path)))
     except Exception as e:
-        print(f"Git date retrieval failed for {file_path}: {str(e)}")
-        return time.strftime('%y/%m/%d %H:%M', time.localtime(os.path.getmtime(file_path)))
+        print(f"Error getting date for {file_path}: {str(e)}")
+        return time.strftime('%y/%m/%d %H:%M',
+                             time.localtime(os.path.getmtime(file_path)))
 
 
 def generate_toc():
