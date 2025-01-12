@@ -31,10 +31,17 @@ def extract_section_and_headers(file_path):
 
 def get_file_creation_date(file_path):
     try:
-        abs_path = os.path.abspath(file_path)
-        git_path = abs_path.replace(os.sep, '/')
+        repo_root = subprocess.check_output(
+            ['git', 'rev-parse', '--show-toplevel'],
+            text=True,
+            stderr=subprocess.PIPE
+        ).strip()
 
-        result = subprocess.check_output(
+        abs_path = os.path.abspath(file_path)
+        rel_path = os.path.relpath(abs_path, repo_root)
+        git_path = rel_path.replace(os.sep, '/')
+
+        first_commit = subprocess.check_output(
             [
                 'git',
                 'log',
@@ -46,17 +53,22 @@ def get_file_creation_date(file_path):
                 git_path
             ],
             text=True,
+            cwd=repo_root,
             stderr=subprocess.PIPE
         ).strip()
 
-        commit_dates = result.split('\n')
-        if commit_dates and commit_dates[0]:
-            return commit_dates[0]
+        if first_commit:
+            return first_commit.split('\n')[0]
 
         return time.strftime('%y/%m/%d %H:%M',
                              time.localtime(os.path.getmtime(file_path)))
 
+    except subprocess.CalledProcessError as e:
+        print(f"Git command error for {git_path}: {e.stderr.decode()}", flush=True)
+        return time.strftime('%y/%m/%d %H:%M',
+                             time.localtime(os.path.getmtime(file_path)))
     except Exception as e:
+        print(f"Unexpected error for {file_path}: {str(e)}", flush=True)
         return time.strftime('%y/%m/%d %H:%M',
                              time.localtime(os.path.getmtime(file_path)))
 
