@@ -2,7 +2,6 @@ import os
 import re
 import time
 import subprocess
-from collections import defaultdict
 
 def find_md_files(src_dir):
     md_files = []
@@ -21,9 +20,12 @@ def extract_section_and_headers(file_path):
     headers = []
     file_name = os.path.basename(file_path)
 
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-        headers = re.findall(r'^#\s+(.+)$', content, re.MULTILINE)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            headers = re.findall(r'^#\s+(.+)$', content, re.MULTILINE)
+    except Exception as e:
+        return None, [], None
 
     return section_num, headers, file_name
 
@@ -55,10 +57,8 @@ def get_file_creation_date(file_path):
                              time.localtime(os.path.getmtime(file_path)))
 
     except Exception as e:
-        print(f"Error getting date for {file_path}: {str(e)}")
         return time.strftime('%y/%m/%d %H:%M',
                              time.localtime(os.path.getmtime(file_path)))
-
 
 def generate_toc():
     sections = {}
@@ -71,8 +71,11 @@ def generate_toc():
             if section_num not in sections:
                 sections[section_num] = []
 
+            file_path = os.path.join('src', f'Section{section_num}', file_name)
+            date = get_file_creation_date(file_path)
+
             for header in headers:
-                entry = (header, file_name)
+                entry = (header, file_name, date)
                 if entry not in sections[section_num]:
                     sections[section_num].append(entry)
 
@@ -83,10 +86,10 @@ def generate_toc():
 
     for section_num in sorted(sections.keys()):
         toc.append(f"## Section {section_num}\n")
-        for i, (header, file_name) in enumerate(sections[section_num], 1):
-            link_path = f"src/Section{section_num}/{file_name}"
-            date = get_file_creation_date(os.path.join('src', f'Section{section_num}', file_name))
-            toc.append(f"{i}. [{header}]({link_path}) - {date}\n")
+        section_entries = sorted(sections[section_num], key=lambda x: x[2])
+        for i, (header, file_name, date) in enumerate(section_entries, 1):
+            file_path = f"src/Section{section_num}/{file_name}"
+            toc.append(f"{i}. [{header}]({file_path}) - {date}\n")
         toc.append("\n")
 
     toc_content = ''.join(toc)
@@ -94,8 +97,11 @@ def generate_toc():
     try:
         with open('README.md', 'w', encoding='utf-8') as f:
             f.write(toc_content)
-    except Exception as e:
-        print(f"Error writing to README.md: {e}")
+    except Exception:
+        pass
 
 if __name__ == '__main__':
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+    os.chdir(project_root)
     generate_toc()
