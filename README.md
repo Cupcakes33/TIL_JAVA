@@ -4,10 +4,10 @@
 김영한 선생님의 강의를 듣고 코드를 작성하고 내용을 요약합니다.
 
 ## Section 8
-1. [자바 메모리 구조와 static 2](src/Section8/8-2.md) - 25/01/12 23:25
-2. [자바 메모리 구조와 static 1](src/Section8/8-1.md) - 25/01/12 23:25
-3. [자바 메모리 구조와 static 3](src/Section8/8-3.md) - 25/01/12 23:25
+1. [자바 메모리 구조와 static 1](src/Section8/8-1.md) - 25/01/07 22:13
+2. [자바 메모리 구조와 static 2](src/Section8/8-2.md) - 25/01/08 23:47
+3. [자바 메모리 구조와 static 3](src/Section8/8-3.md) - 25/01/09 23:50
 
 ## Section 9
-1. [Final](src/Section9/9-1.md) - 25/01/12 23:25
+1. [Final](src/Section9/9-1.md) - 25/01/12 23:02
 
