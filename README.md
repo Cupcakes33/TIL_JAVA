@@ -11,3 +11,6 @@
 ## Section 9
 1. [Final](src/Section9/9-1.md) - 25/01/12 23:02
 
+## Section 10
+1. [상속](src/Section10/10-1.md) - 25/01/13 23:04
+
