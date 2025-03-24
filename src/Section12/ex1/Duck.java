@@ -1,9 +1,8 @@
 package Section12.ex1;
 
-public class Caw extends Animal{
-
+public class Duck extends Animal{
     @Override
     public void sound() {
-        System.out.println("음머");
+        System.out.println("꽉꽉");
     }
 }

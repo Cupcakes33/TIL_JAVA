@@ -5,8 +5,9 @@ public class AnimalSoundMain {
         Dog dog = new Dog();
         Cat cat = new Cat();
         Caw caw = new Caw();
+        Duck duck = new Duck();
 
-        Animal[] animals = {dog, cat, caw};
+        Animal[] animals = {dog, cat, caw, duck};
         for (Animal animal : animals){
             soundAnimal(animal);
         }
